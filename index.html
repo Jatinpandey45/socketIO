@@ -46,8 +46,11 @@
   <body>
     <ul id="messages"></ul>
     <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
+      <input id="m" autocomplete="off" />
+      <button>Send</button>
     </form>
+    <button id="receive_button">Receive</button>
+
   </body>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -66,15 +69,23 @@
           pincode:201301
         }
       };
-        socket.emit('location', JSON.stringify(msg));
+        socket.emit('setlocation', JSON.stringify(msg));
         $('#m').val('');
 
         return false;
       });
 
-      socket.on('location', function(msg){
+      $("#receive_button").on('click',function(){
+        var msg = {token:12};
+        socket.emit('getlocation', JSON.stringify(msg));
+
+      });
+
+      socket.on('getlocation', function(msg){
         $('#messages').append($('<li>').text(msg));
       });
+
+
     });
   </script>
 </html>

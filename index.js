@@ -9,7 +9,7 @@ app.get("/", (req, res) => {
 });
 
 io.on("connection", socket => {
-  socket.on("location", data => {
+  socket.on("setlocation", data => {
     console.log(data);
 
     var locationData = JSON.parse(data);
@@ -19,12 +19,29 @@ io.on("connection", socket => {
       location
         .save(locationData)
         .then(data => {
+          socket.emit("getlocation", data);
           console.log(data);
         })
         .catch(erro => {
           throw erro;
         });
-      socket.broadcast.emit("location", data);
+    }
+  });
+
+  socket.on("getlocation", data => {
+    var userData = JSON.parse(data);
+
+    if (typeof userData != "undefined") {
+      var token = userData.token;
+      var finalResutl = [];
+      Location.find({ token: token })
+        .sort({ _id: -1 })
+        .then(result => {
+          socket.emit("getlocation", result);
+        })
+        .catch(erro => {
+          throw new Error("Something went wrong");
+        });
     }
   });
 
