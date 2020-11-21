@@ -1,6 +1,16 @@
-const app = require("express")();
-const http = require("http").createServer(app);
-var io = require("socket.io")(http,{ origins: '*:*'});
+var app = require('express')();
+var fs = require('fs');
+var https        = require('https');
+var server = https.createServer({
+    key: fs.readFileSync('./key.key'),
+    cert: fs.readFileSync('./cert.crt'),
+    ca: fs.readFileSync('./ca.crt'),
+    requestCert: false,
+    rejectUnauthorized: false
+},app);
+
+
+var io = require("socket.io")(server,{ origins: '*:*'});
 const mongoose = require("./config/database");
 const MessageModel = require("./models/message");
 const online = require('./models/online');
@@ -259,6 +269,6 @@ socket.on('getgroupmessages',data => {
 
 
 
-http.listen(3000, () => {
+server.listen(3000, () => {
   console.log("listening on *:3000");
 });
