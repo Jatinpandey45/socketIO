@@ -56,36 +56,63 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script>
-    $(function () {
+
       var socket = io();
       $('form').submit(function(e){
         e.preventDefault(); // prevents page reloading
         var msg = {
-        token:12,
-        geolocation:{
-          lat:3231.1212,
-          long:121.1212,
-          formatted_address:"hello world",
-          pincode:201301
-        }
+        to_user_id:12,
+        from_user_id:13,
+        is_read:'unread',
+        message:"Hello jatin",
+        media_url:"https://stackoverflow.com/questions/30783179/mongoose-enum-validation-on-string-arrays/32781322",
+        emoji:"&#128512",
+        created:new Date().toISOString()
       };
-        socket.emit('setlocation', JSON.stringify(msg));
+
+
+        socket.emit('sendmessage', JSON.stringify(msg));
+       
         $('#m').val('');
 
         return false;
       });
 
       $("#receive_button").on('click',function(){
-        var msg = {token:12};
+        var msg = {driver_id:43};
         socket.emit('getlocation', JSON.stringify(msg));
 
+      });
+
+      socket.on('connected',function(){
+
+        var online = {
+        user_id:12,
+        status:'online'
+      };
+      socket.emit('online',JSON.stringify(online));
+     
       });
 
       socket.on('getlocation', function(msg){
         $('#messages').append($('<li>').text(msg));
       });
 
+      socket.on('receivemessage', function(msg){
+        console.log(msg);
+        $('#messages').append($('<li>').text(msg));
+      });
 
-    });
+
+      socket.on('isonline', function(data) {
+
+        console.log(data);
+
+      })
+
+    
   </script>
+
+
+
 </html>
