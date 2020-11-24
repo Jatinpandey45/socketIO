@@ -9,7 +9,6 @@ var server = https.createServer({
     rejectUnauthorized: false
 },app);
 
-
 var io = require("socket.io")(server,{ origins: '*:*'});
 const mongoose = require("./config/database");
 const MessageModel = require("./models/message");
@@ -150,7 +149,7 @@ socket.on("loadgroupmessage", data => {
       time:{$first:"$time"},
       created:{$first:"$created"}
     })
-    
+
     .sort({_id:-1})
 
     .limit(10)
