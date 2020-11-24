@@ -110,7 +110,7 @@ socket.on('isonline',data => {
 });
 
 
-socket.on("loadmessage", data => {
+socket.on("loadgroupmessage", data => {
   var userData = JSON.parse(data);
 
   if(typeof userData != "undefined") {
@@ -138,6 +138,65 @@ socket.on("loadmessage", data => {
       group_id:{$first:"$group_id"},
       group_name:{$first:"$group_name"},
       group_members:{$first:"$group_members"},
+      unread_members:{$first:"$unread_members"},
+      media_url:{$first:"$media_url"},
+      emoji:{$first:"$emoji"},
+      to_user_id:{$first:"$to_user_id"},
+      to_user_name:{$first:"$to_user_name"},
+      from_user_id:{$first:"$from_user_id"},
+      from_user_name:{$first:"$from_user_name"},
+      is_read:{$first:"$is_read"},
+      message:{$first:"$message"},
+      time:{$first:"$time"},
+      created:{$first:"$created"}
+    })
+    
+    .sort({_id:-1})
+
+    .limit(10)
+
+    .then(data => {
+      console.log(data);
+      socket.emit('loadinitgroupmessage',data);
+
+    }).catch(err => {
+      throw err;
+    })
+
+    }
+
+  }
+
+});
+
+
+socket.on("loadmessage", data => {
+  var userData = JSON.parse(data);
+
+  if(typeof userData != "undefined") {
+
+    userId = userData.userId;
+
+    if(userId) {
+
+    MessageModel.aggregate([
+      {
+        $match:{
+          unread_members:{
+                $in:[userId]
+            }
+        }
+      }
+  ])
+
+    .group(
+      {
+      _id:"$group_id",
+      send_profile_image:{$first:"$send_profile_image"},
+      group_id:{$first:"$group_id"},
+      group_name:{$first:"$group_name"},
+      group_members:{$first:"$group_members"},
+      unread_members:{$first:"$unread_members"},
       media_url:{$first:"$media_url"},
       emoji:{$first:"$emoji"},
       to_user_id:{$first:"$to_user_id"},
@@ -205,11 +264,11 @@ socket.on('getgroupmessages',data => {
 
     var messageData = JSON.parse(data);
 
-    if(messageData.id && messageData.members) {
+    if(messageData.id && messageData.unread_members) {
 
 
       MessageModel.updateOne({_id:messageData.id},{$set:{
-        group_members:messageData.members
+        unread_members:messageData.unread_members
       }})
       
       .exec()

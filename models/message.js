@@ -23,6 +23,9 @@ const messageSchema = new mongoose.Schema({
     group_members:[{
       type:String
     }],
+    unread_members:[{
+      type:String
+    }],
     message:String,
     media_url:{
       type:String,
