@@ -26,6 +26,9 @@ const messageSchema = new mongoose.Schema({
     unread_members:[{
       type:String
     }],
+    read_members:[{
+      type:String
+    }],
     message:String,
     media_url:{
       type:String,

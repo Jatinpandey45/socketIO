@@ -13,6 +13,7 @@ var io = require("socket.io")(server,{ origins: '*:*'});
 const mongoose = require("./config/database");
 const MessageModel = require("./models/message");
 const online = require('./models/online');
+const readcount = require('./models/readcount');
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
@@ -183,7 +184,11 @@ socket.on("loadmessage", data => {
         $match:{
           unread_members:{
                 $in:[userId]
-            }
+            },
+
+          read_members:{
+            $nin:[userId]
+          }
         }
       }
   ])
@@ -196,6 +201,7 @@ socket.on("loadmessage", data => {
       group_name:{$first:"$group_name"},
       group_members:{$first:"$group_members"},
       unread_members:{$first:"$unread_members"},
+      read_members:{$first:"$read_members"},
       media_url:{$first:"$media_url"},
       emoji:{$first:"$emoji"},
       to_user_id:{$first:"$to_user_id"},
@@ -221,6 +227,38 @@ socket.on("loadmessage", data => {
     })
 
     }
+
+  }
+
+});
+
+// search user group
+
+socket.on('searchmessage',data => {
+
+  var decodeData = JSON.parse(data);
+  var searchTerm = decodeData.searchTerm;
+
+  if(searchTerm) {
+
+      MessageModel.find({message:{
+        $regex:searchTerm,
+        $options:'i'
+      }})
+  
+      .sort({_id:-1})
+
+      .limit(10)
+
+      .exec()
+
+      .then(data => {
+        socket.emit('receivesearchmessage',data);
+      })
+      
+      .catch(err => {
+        throw err;
+      })
 
   }
 
@@ -267,7 +305,8 @@ socket.on('getgroupmessages',data => {
 
 
       MessageModel.updateOne({_id:messageData.id},{$set:{
-        unread_members:messageData.unread_members
+        unread_members:messageData.unread_members,
+        read_members:messageData.read_members
       }})
       
       .exec()
@@ -283,6 +322,73 @@ socket.on('getgroupmessages',data => {
     }
 
   });
+
+  socket.on('usertyping',data => {
+
+    var messageData = JSON.parse(data);
+    if(messageData.user != "undefined") {
+      socket.broadcast.emit('receivetyping',messageData.user);
+    }
+
+  });
+
+
+
+  socket.on('getmyreadmessage',data => {
+
+    var userData = JSON.parse(data);
+
+    if(userData.user.user_id) {
+
+     var userId = userData.user.user_id;
+     
+    MessageModel.aggregate([
+      {
+        $match:{
+          read_members:{
+                $in:[userId]
+            }
+        }
+      }
+  ])
+
+    .group(
+      {
+      _id:"$group_id",
+      send_profile_image:{$first:"$send_profile_image"},
+      group_id:{$first:"$group_id"},
+      group_name:{$first:"$group_name"},
+      group_members:{$first:"$group_members"},
+      unread_members:{$first:"$unread_members"},
+      read_members:{$first:"$read_members"},
+      media_url:{$first:"$media_url"},
+      emoji:{$first:"$emoji"},
+      to_user_id:{$first:"$to_user_id"},
+      to_user_name:{$first:"$to_user_name"},
+      from_user_id:{$first:"$from_user_id"},
+      from_user_name:{$first:"$from_user_name"},
+      is_read:{$first:"$is_read"},
+      message:{$first:"$message"},
+      time:{$first:"$time"},
+      created:{$first:"$created"}
+    })
+    
+    .sort({_id:-1})
+
+    .limit(10)
+
+    .then(data => {
+      console.log(data);
+      socket.emit('showinitmessage',data);
+
+    }).catch(err => {
+      throw err;
+    })
+
+    }
+
+  })
+
 
   socket.on('disconnect',(data) => {
     console.log(data);
