@@ -20,6 +20,7 @@ const messageSchema = new mongoose.Schema({
       required:false
     },
     group_name:String,
+    group_image:String,
     group_members:[{
       type:String
     }],

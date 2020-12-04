@@ -72,7 +72,10 @@ io.on("connection", socket => {
               .exec()
 
               .then(result => {
-                socket.broadcast.emit("onlinestatus", {user_id:id,status:'online'});
+                socket.broadcast.emit("onlinestatus", {
+                  user_id: id,
+                  status: "online"
+                });
               });
           } else {
             // create new record
@@ -152,6 +155,7 @@ io.on("connection", socket => {
             group_id: { $first: "$group_id" },
             group_name: { $first: "$group_name" },
             group_members: { $first: "$group_members" },
+            group_image: { $first: "$group_image" },
             unread_members: { $first: "$unread_members" },
             media_url: { $first: "$media_url" },
             emoji: { $first: "$emoji" },
@@ -177,6 +181,35 @@ io.on("connection", socket => {
             throw err;
           });
       }
+    }
+  });
+
+  // update group name and image.
+
+  socket.on("updategroupsetting", data => {
+    var userData = JSON.parse(data);
+
+    if (userData.group_id && userData.group_image && userData.group_name) {
+      var id = userData.group_id;
+
+      MessageModel.update(
+        { group_id: id },
+        {
+          $set: {
+            group_name: userData.group_name,
+            group_image: userData.group_image
+          }
+        }
+      )
+
+        .exec()
+
+        .then(result => {
+          socket.emit("groupsettingupdated", result);
+        })
+        .catch(err => {
+          throw err;
+        });
     }
   });
 
@@ -207,6 +240,7 @@ io.on("connection", socket => {
             group_id: { $first: "$group_id" },
             group_name: { $first: "$group_name" },
             group_members: { $first: "$group_members" },
+            group_image: { $first: "$group_image" },
             unread_members: { $first: "$unread_members" },
             read_members: { $first: "$read_members" },
             media_url: { $first: "$media_url" },
@@ -344,6 +378,7 @@ io.on("connection", socket => {
           group_id: { $first: "$group_id" },
           group_name: { $first: "$group_name" },
           group_members: { $first: "$group_members" },
+          group_image: { $first: "$group_image" },
           unread_members: { $first: "$unread_members" },
           read_members: { $first: "$read_members" },
           media_url: { $first: "$media_url" },
@@ -399,7 +434,10 @@ io.on("connection", socket => {
               .exec()
 
               .then(result => {
-                socket.broadcast.emit("onlinestatus", {user_id:id,status:'offline'});
+                socket.broadcast.emit("onlinestatus", {
+                  user_id: id,
+                  status: "offline"
+                });
               });
           }
         })
@@ -409,13 +447,14 @@ io.on("connection", socket => {
     }
   });
 
-
-  socket.on('disconnect',data => {
+  socket.on("disconnect", data => {
     var userId = socket.user_id;
     console.log(socket);
-    socket.broadcast.emit('connection_closed',{user_id:userId,status:'offline'});
-  })
-
+    socket.broadcast.emit("connection_closed", {
+      user_id: userId,
+      status: "offline"
+    });
+  });
 });
 
 server.listen(3000, () => {
