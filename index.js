@@ -205,7 +205,7 @@ io.on("connection", socket => {
         .exec()
 
         .then(result => {
-          socket.emit("groupsettingupdated", result);
+          socket.broadcast.emit("groupsettingupdated", userData);
         })
         .catch(err => {
           throw err;
