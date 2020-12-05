@@ -220,39 +220,21 @@ io.on("connection", socket => {
       userId = userData.userId;
 
       if (userId) {
-        MessageModel.aggregate([
+        MessageModel.find(
           {
-            $match: {
-              unread_members: {
-                $in: [userId]
+            $and:[
+              {
+                unread_members: {
+                  $in: [userId]
+                }
               },
-
-              read_members: {
-                $nin: [userId]
+              {
+                read_members: {
+                  $nin: [userId]
+                }
               }
-            }
-          }
-        ])
 
-          .group({
-            _id: "$group_id",
-            send_profile_image: { $first: "$send_profile_image" },
-            group_id: { $first: "$group_id" },
-            group_name: { $first: "$group_name" },
-            group_members: { $first: "$group_members" },
-            group_image: { $first: "$group_image" },
-            unread_members: { $first: "$unread_members" },
-            read_members: { $first: "$read_members" },
-            media_url: { $first: "$media_url" },
-            emoji: { $first: "$emoji" },
-            to_user_id: { $first: "$to_user_id" },
-            to_user_name: { $first: "$to_user_name" },
-            from_user_id: { $first: "$from_user_id" },
-            from_user_name: { $first: "$from_user_name" },
-            is_read: { $first: "$is_read" },
-            message: { $first: "$message" },
-            time: { $first: "$time" },
-            created: { $first: "$created" }
+            ]
           })
 
           .sort({ _id: -1 })
@@ -362,37 +344,22 @@ io.on("connection", socket => {
     if (userData.user.user_id) {
       var userId = userData.user.user_id;
 
-      MessageModel.aggregate([
+      MessageModel.find(
         {
-          $match: {
-            read_members: {
+          $or:[
+            {
+              read_members: {
               $in: [userId]
             }
-          }
+          },
+              {
+                unread_members:{
+                $in:[userId]
+              }
+            }
+          ]
         }
-      ])
-
-        .group({
-          _id: "$group_id",
-          send_profile_image: { $first: "$send_profile_image" },
-          group_id: { $first: "$group_id" },
-          group_name: { $first: "$group_name" },
-          group_members: { $first: "$group_members" },
-          group_image: { $first: "$group_image" },
-          unread_members: { $first: "$unread_members" },
-          read_members: { $first: "$read_members" },
-          media_url: { $first: "$media_url" },
-          emoji: { $first: "$emoji" },
-          to_user_id: { $first: "$to_user_id" },
-          to_user_name: { $first: "$to_user_name" },
-          from_user_id: { $first: "$from_user_id" },
-          from_user_name: { $first: "$from_user_name" },
-          is_read: { $first: "$is_read" },
-          message: { $first: "$message" },
-          time: { $first: "$time" },
-          created: { $first: "$created" }
-        })
-
+      )
         .sort({ _id: -1 })
 
         .limit(10)
