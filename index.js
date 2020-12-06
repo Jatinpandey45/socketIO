@@ -148,6 +148,11 @@ io.on("connection", socket => {
                 $in: grouIds
               }
             }
+          },
+          {
+            $sort:{
+              _id:-1
+            }
           }
         ])
 
@@ -172,7 +177,6 @@ io.on("connection", socket => {
           })
 
           .sort({ _id: -1 })
-
 
           .limit(10)
 
