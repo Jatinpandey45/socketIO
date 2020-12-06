@@ -53,6 +53,7 @@ io.on("connection", socket => {
       socket.user_id = id;
 
       online
+
         .findOne({ user_id: id })
 
         .exec()
@@ -85,13 +86,14 @@ io.on("connection", socket => {
               status: "online"
             });
 
-            newStatus
+          
+            newStatus.save((err,newdata) => {
 
-              .save(newData => {
-                socket.broadcast.emit("onlinestatus", newData);
-              })
-              .catch(err => {
-                throw err;
+                if(err) {
+                  throw err;
+                }
+
+                socket.broadcast.emit("onlinestatus", newdata);
               });
           }
         })
@@ -171,6 +173,7 @@ io.on("connection", socket => {
 
           .sort({ _id: -1 })
 
+
           .limit(10)
 
           .then(data => {
@@ -220,22 +223,20 @@ io.on("connection", socket => {
       userId = userData.userId;
 
       if (userId) {
-        MessageModel.find(
-          {
-            $and:[
-              {
-                unread_members: {
-                  $in: [userId]
-                }
-              },
-              {
-                read_members: {
-                  $nin: [userId]
-                }
+        MessageModel.find({
+          $and: [
+            {
+              unread_members: {
+                $in: [userId]
               }
-
-            ]
-          })
+            },
+            {
+              read_members: {
+                $nin: [userId]
+              }
+            }
+          ]
+        })
 
           .sort({ _id: -1 })
 
@@ -344,25 +345,60 @@ io.on("connection", socket => {
     if (userData.user.user_id) {
       var userId = userData.user.user_id;
 
-      MessageModel.find(
+      MessageModel.aggregate([
         {
-          $or:[
-            {
-              read_members: {
-              $in: [userId]
-            }
-          },
+          $match: {
+            $or: [
               {
-                unread_members:{
-                $in:[userId]
+                read_members: {
+                  $in: [userId]
+                }
+              },
+              {
+                unread_members: {
+                  $in: [userId]
+                }
               }
-            }
-          ]
+            ]
+          }
+        },
+        {
+          $sort:{
+            _id:-1
+          }
+        },
+        // {
+        //   $limit:10
+        // }
+      ])
+
+        .group({
+          _id: "$group_id",
+          send_profile_image: { $first: "$send_profile_image" },
+          group_id: { $first: "$group_id" },
+          group_name: { $first: "$group_name" },
+          group_members: { $first: "$group_members" },
+          group_image: { $first: "$group_image" },
+          unread_members: { $first: "$unread_members" },
+          media_url: { $first: "$media_url" },
+          emoji: { $first: "$emoji" },
+          to_user_id: { $first: "$to_user_id" },
+          to_user_name: { $first: "$to_user_name" },
+          from_user_id: { $first: "$from_user_id" },
+          from_user_name: { $first: "$from_user_name" },
+          is_read: { $first: "$is_read" },
+          message: { $first: "$message" },
+          time: { $first: "$time" },
+          created: { $first: "$created" },
+          total: { "$sum": {
+            $cond:  [{ "$in": [userId,"$unread_members"] }, 1, 0] 
+          } 
         }
-      )
+        })
+        
         .sort({ _id: -1 })
 
-        .limit(10)
+         .limit(10)
 
         .then(data => {
           console.log(data);
