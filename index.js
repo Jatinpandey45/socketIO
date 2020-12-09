@@ -165,12 +165,14 @@ io.on("connection", socket => {
             group_image: { $first: "$group_image" },
             unread_members: { $first: "$unread_members" },
             media_url: { $first: "$media_url" },
+            document_url:{ $first:"$document_url"},
             emoji: { $first: "$emoji" },
             to_user_id: { $first: "$to_user_id" },
             to_user_name: { $first: "$to_user_name" },
             from_user_id: { $first: "$from_user_id" },
             from_user_name: { $first: "$from_user_name" },
             is_read: { $first: "$is_read" },
+            new_member_added:{$first:"$new_member_added"},
             message: { $first: "$message" },
             time: { $first: "$time" },
             created: { $first: "$created" }
@@ -385,6 +387,7 @@ io.on("connection", socket => {
           group_image: { $first: "$group_image" },
           unread_members: { $first: "$unread_members" },
           media_url: { $first: "$media_url" },
+          document_url:{ $first:"$document_url"},
           emoji: { $first: "$emoji" },
           to_user_id: { $first: "$to_user_id" },
           to_user_name: { $first: "$to_user_name" },
@@ -393,6 +396,7 @@ io.on("connection", socket => {
           is_read: { $first: "$is_read" },
           message: { $first: "$message" },
           time: { $first: "$time" },
+          new_member_added:{$first:"$new_member_added"},
           created: { $first: "$created" },
           total: { "$sum": {
             $cond:  [{ "$in": [userId,"$unread_members"] }, 1, 0] 

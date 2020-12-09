@@ -36,6 +36,15 @@ const messageSchema = new mongoose.Schema({
       default:null,
       required:false
     },
+    document_url:{
+      type:String,
+      default:null,
+      required:false
+    },
+    new_member_added:{
+      type:Number,
+      default:0
+    },
     emoji:{
       type:String,
       default:null,
