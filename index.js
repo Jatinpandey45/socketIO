@@ -191,7 +191,7 @@ io.on("connection", socket => {
         }
         })
         
-        .sort({ _id: -1 })
+        .sort({ created: -1 })
 
         .then(data => {
           console.log(data);
@@ -416,7 +416,7 @@ io.on("connection", socket => {
         }
         })
         
-        .sort({ _id: -1 })
+        .sort({ created: -1 })
 
          .limit(10)
 
