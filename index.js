@@ -143,6 +143,11 @@ io.on("connection", socket => {
           $match: {
             $or: [
               {
+                group_members:{
+                  $in:[userId]
+                }
+              },
+              {
                 read_members: {
                   $in: [userId]
                 }
@@ -367,6 +372,12 @@ io.on("connection", socket => {
         {
           $match: {
             $or: [
+              {
+                group_members:{
+                  $in:[userId]
+                }
+              },
+              
               {
                 read_members: {
                   $in: [userId]
