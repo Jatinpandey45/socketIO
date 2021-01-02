@@ -304,6 +304,87 @@ io.on("connection", socket => {
         .catch(err => {
           throw err;
         });
+    } else {
+
+      var userId = decodeData.user.user_id;
+      MessageModel.aggregate([
+        {
+          $match: {
+            $or: [
+              {
+                group_members: {
+                  $in: [userId]
+                }
+              },
+
+              {
+                read_members: {
+                  $in: [userId]
+                }
+              },
+              {
+                unread_members: {
+                  $in: [userId]
+                }
+              }
+            ]
+          }
+        },
+        {
+          $sort: {
+            _id: -1
+          }
+        }
+        // {
+        //   $limit:10
+        // }
+      ])
+
+        .group({
+          _id: "$group_id",
+          send_profile_image: { $first: "$send_profile_image" },
+          group_id: { $first: "$group_id" },
+          group_name: { $first: "$group_name" },
+          group_members: { $first: "$group_members" },
+          group_image: { $first: "$group_image" },
+          unread_members: { $first: "$unread_members" },
+          media_url: { $first: "$media_url" },
+          document_url: { $first: "$document_url" },
+          emoji: { $first: "$emoji" },
+          to_user_id: { $first: "$to_user_id" },
+          to_user_name: { $first: "$to_user_name" },
+          from_user_id: { $first: "$from_user_id" },
+          from_user_name: { $first: "$from_user_name" },
+          is_read: { $first: "$is_read" },
+          message: { $first: "$message" },
+          time: { $first: "$time" },
+          new_member_added: { $first: "$new_member_added" },
+          created: { $first: "$created" },
+          total: {
+            $sum: {
+              $cond: [{ $in: [userId, "$unread_members"] }, 1, 0]
+            }
+          }
+        })
+
+        .sort({ created: -1 })
+
+        .limit(10)
+
+        .then(data => {
+          console.log(data);
+          socket.emit("showinitmessage", data);
+        })
+        .catch(err => {
+          throw err;
+        });
+
+
+
+
+
+
+
     }
   });
 
