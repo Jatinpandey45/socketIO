@@ -285,7 +285,7 @@ io.on("connection", socket => {
         group_members: {
           $in: [userId]
         },
-        message: {
+        group_name: {
           $regex: searchTerm,
           $options: "i"
         }
