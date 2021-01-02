@@ -86,15 +86,13 @@ io.on("connection", socket => {
               status: "online"
             });
 
-          
-            newStatus.save((err,newdata) => {
+            newStatus.save((err, newdata) => {
+              if (err) {
+                throw err;
+              }
 
-                if(err) {
-                  throw err;
-                }
-
-                socket.broadcast.emit("onlinestatus", newdata);
-              });
+              socket.broadcast.emit("onlinestatus", newdata);
+            });
           }
         })
         .catch(err => {
@@ -137,14 +135,14 @@ io.on("connection", socket => {
 
     if (typeof userData != "undefined") {
       var userId = userData.user_id;
-      
+
       MessageModel.aggregate([
         {
           $match: {
             $or: [
               {
-                group_members:{
-                  $in:[userId]
+                group_members: {
+                  $in: [userId]
                 }
               },
               {
@@ -161,10 +159,10 @@ io.on("connection", socket => {
           }
         },
         {
-          $sort:{
-            _id:-1
+          $sort: {
+            _id: -1
           }
-        },
+        }
         // {
         //   $limit:10
         // }
@@ -179,7 +177,7 @@ io.on("connection", socket => {
           group_image: { $first: "$group_image" },
           unread_members: { $first: "$unread_members" },
           media_url: { $first: "$media_url" },
-          document_url:{ $first:"$document_url"},
+          document_url: { $first: "$document_url" },
           emoji: { $first: "$emoji" },
           to_user_id: { $first: "$to_user_id" },
           to_user_name: { $first: "$to_user_name" },
@@ -188,14 +186,15 @@ io.on("connection", socket => {
           is_read: { $first: "$is_read" },
           message: { $first: "$message" },
           time: { $first: "$time" },
-          new_member_added:{$first:"$new_member_added"},
+          new_member_added: { $first: "$new_member_added" },
           created: { $first: "$created" },
-          total: { "$sum": {
-            $cond:  [{ "$in": [userId,"$unread_members"] }, 1, 0] 
-          } 
-        }
+          total: {
+            $sum: {
+              $cond: [{ $in: [userId, "$unread_members"] }, 1, 0]
+            }
+          }
         })
-        
+
         .sort({ created: -1 })
 
         .then(data => {
@@ -205,8 +204,6 @@ io.on("connection", socket => {
         .catch(err => {
           throw err;
         });
-
-      
     }
   });
 
@@ -281,9 +278,13 @@ io.on("connection", socket => {
   socket.on("searchmessage", data => {
     var decodeData = JSON.parse(data);
     var searchTerm = decodeData.searchTerm;
+    var userId = decodeData.user.user_id;
 
     if (searchTerm) {
       MessageModel.find({
+        group_members: {
+          $in: [userId]
+        },
         message: {
           $regex: searchTerm,
           $options: "i"
@@ -373,11 +374,11 @@ io.on("connection", socket => {
           $match: {
             $or: [
               {
-                group_members:{
-                  $in:[userId]
+                group_members: {
+                  $in: [userId]
                 }
               },
-              
+
               {
                 read_members: {
                   $in: [userId]
@@ -392,10 +393,10 @@ io.on("connection", socket => {
           }
         },
         {
-          $sort:{
-            _id:-1
+          $sort: {
+            _id: -1
           }
-        },
+        }
         // {
         //   $limit:10
         // }
@@ -410,7 +411,7 @@ io.on("connection", socket => {
           group_image: { $first: "$group_image" },
           unread_members: { $first: "$unread_members" },
           media_url: { $first: "$media_url" },
-          document_url:{ $first:"$document_url"},
+          document_url: { $first: "$document_url" },
           emoji: { $first: "$emoji" },
           to_user_id: { $first: "$to_user_id" },
           to_user_name: { $first: "$to_user_name" },
@@ -419,17 +420,18 @@ io.on("connection", socket => {
           is_read: { $first: "$is_read" },
           message: { $first: "$message" },
           time: { $first: "$time" },
-          new_member_added:{$first:"$new_member_added"},
+          new_member_added: { $first: "$new_member_added" },
           created: { $first: "$created" },
-          total: { "$sum": {
-            $cond:  [{ "$in": [userId,"$unread_members"] }, 1, 0] 
-          } 
-        }
+          total: {
+            $sum: {
+              $cond: [{ $in: [userId, "$unread_members"] }, 1, 0]
+            }
+          }
         })
-        
+
         .sort({ created: -1 })
 
-         .limit(10)
+        .limit(10)
 
         .then(data => {
           console.log(data);
