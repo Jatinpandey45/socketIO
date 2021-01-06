@@ -281,29 +281,62 @@ io.on("connection", socket => {
     var userId = decodeData.user.user_id;
 
     if (searchTerm) {
-      MessageModel.find({
-        group_members: {
-          $in: [userId]
-        },
-        group_name: {
-          $regex: searchTerm,
-          $options: "i"
-        }
-      })
 
-        .sort({ _id: -1 })
+
+      MessageModel.aggregate([
+        {
+          $match: {
+            $and: [
+              {
+                group_members: {
+                  $in: [userId]
+                }
+              },
+              {
+              group_name: {
+                $regex: searchTerm,
+                $options: "i"
+              }
+             }
+            ]
+          }
+        }
+      ])
+
+        .group({
+          _id: "$group_id",
+          send_profile_image: { $first: "$send_profile_image" },
+          group_id: { $first: "$group_id" },
+          group_name: { $first: "$group_name" },
+          group_members: { $first: "$group_members" },
+          group_image: { $first: "$group_image" },
+          unread_members: { $first: "$unread_members" },
+          media_url: { $first: "$media_url" },
+          document_url: { $first: "$document_url" },
+          emoji: { $first: "$emoji" },
+          to_user_id: { $first: "$to_user_id" },
+          to_user_name: { $first: "$to_user_name" },
+          from_user_id: { $first: "$from_user_id" },
+          from_user_name: { $first: "$from_user_name" },
+          is_read: { $first: "$is_read" },
+          message: { $first: "$message" },
+          time: { $first: "$time" },
+          new_member_added: { $first: "$new_member_added" },
+          created: { $first: "$created" }
+        })
+
+        .sort({ created: -1 })
 
         .limit(10)
 
-        .exec()
-
         .then(data => {
+          console.log(data);
           socket.emit("receivesearchmessage", data);
         })
-
         .catch(err => {
           throw err;
         });
+
     } else {
 
       var userId = decodeData.user.user_id;
