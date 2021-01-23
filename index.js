@@ -445,6 +445,33 @@ io.on("connection", socket => {
     }
   });
 
+
+  // send message by single user.
+
+  socket.on("getsinglemessages", data => {
+    var userData = JSON.parse(data);
+
+    if (typeof userData != "undefined") {
+      groupId = userData.groupId;
+
+      if (groupId) {
+        MessageModel.find({ group_id: groupId })
+
+          .limit(20)
+
+          .then(data => {
+            console.log(data);
+            socket.emit("singlemessages", data);
+          })
+          .catch(err => {
+            throw err;
+          });
+      }
+    }
+  });
+
+
+
   socket.on("updatereceived", data => {
     var messageData = JSON.parse(data);
 
