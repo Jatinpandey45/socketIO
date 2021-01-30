@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const messageSchema = new mongoose.Schema({
     to_user_id:Number,
     to_user_name:String,
+    to_user_image:String,
     from_user_id:Number,
     from_user_name:String,
     send_profile_image:{
